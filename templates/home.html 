@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Formatech Solutions{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="jumbotron bg-light p-5 rounded">
+        <h1 class="display-4">Bienvenue sur Formatech Solutions</h1>
+        <p class="lead">La plateforme de gestion des formations en entreprise</p>
+        <hr class="my-4">
+        <p>Découvrez nos formations, suivez votre progression et obtenez des certificats de compétences.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'formation:training_list' %}" role="button">Voir les formations</a>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Formations sur mesure</h5>
+                    <p class="card-text">Des formations adaptées aux besoins spécifiques de votre entreprise.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Suivi personnalisé</h5>
+                    <p class="card-text">Suivez votre progression et obtenez des recommandations personnalisées.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Certificats reconnus</h5>
+                    <p class="card-text">Validez vos compétences avec des certificats téléchargeables.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ training.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ training.title }}</h1>
+        <div>
+            <a href="{% url 'formation:training_update' training.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'formation:training_delete' training.id %}" class="btn btn-danger">Supprimer</a>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Détails de la formation</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <h6>Description:</h6>
+                    <p>{{ training.description }}</p>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <h6>Objectifs:</h6>
+                    <p>{{ training.objectives }}</p>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <h6>Prérequis:</h6>
+                    <p>{{ training.prerequisites|default:"Aucun prérequis spécifique" }}</p>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <h6>Durée:</h6>
+                    <p>{{ training.duration }} heures</p>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <h6>Participants max:</h6>
+                    <p>{{ training.max_participants }} personnes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Sessions programmées</h5>
+            <a href="{% url 'formation:session_create' %}" class="btn btn-primary btn-sm">Nouvelle session</a>
+        </div>
+        <div class="card-body">
+            {% if sessions %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date de début</th>
+                            <th>Date de fin</th>
+                            <th>Lieu</th>
+                            <th>Statut</th>
+                            <th>Participants</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.start_date|date:"d/m/Y H:i" }}</td>
+                                <td>{{ session.end_date|date:"d/m/Y H:i" }}</td>
+                                <td>{{ session.location }}</td>
+                                <td>{{ session.get_status_display }}</td>
+                                <td>{{ session.get_participants.count }} / {{ training.max_participants }}</td>
+                                <td>
+                                    <a href="{% url 'formation:session_detail' session.id %}" class="btn btn-sm btn-info">Voir</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Aucune session programmée pour cette formation.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

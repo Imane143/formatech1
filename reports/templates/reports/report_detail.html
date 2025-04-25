@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ report.title }}</h1>
+        <div>
+            <a href="{% url 'reports:report_export' report.id %}?format=pdf" class="btn btn-success">Exporter PDF</a>
+            <a href="{% url 'reports:report_export' report.id %}?format=csv" class="btn btn-info">Exporter CSV</a>
+            <a href="{% url 'reports:report_update' report.id %}" class="btn btn-primary">Modifier</a>
+            <a href="{% url 'reports:report_delete' report.id %}" class="btn btn-danger">Supprimer</a>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Informations du rapport</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Type:</dt>
+                <dd class="col-sm-9">{{ report.get_type_display }}</dd>
+                
+                <dt class="col-sm-3">Description:</dt>
+                <dd class="col-sm-9">{{ report.description|default:"Aucune description" }}</dd>
+                
+                <dt class="col-sm-3">Créé le:</dt>
+                <dd class="col-sm-9">{{ report.created_at }}</dd>
+                
+                <dt class="col-sm-3">Dernière mise à jour:</dt>
+                <dd class="col-sm-9">{{ report.updated_at }}</dd>
+                
+                <dt class="col-sm-3">Paramètres:</dt>
+                <dd class="col-sm-9"><pre>{{ report.parameters }}</pre></dd>
+            </dl>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Résultats du rapport</h5>
+        </div>
+        <div class="card-body">
+            {% if report.type == 'ATTENDANCE' %}
+                <h6>Rapport de présence</h6>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Formation</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            <th>Total</th>
+                            <th>Présents</th>
+                            <th>Absents</th>
+                            <th>Taux de présence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in report_data.attendance_data %}
+                            <tr>
+                                <td>{{ item.session.training }}</td>
+                                <td>{{ item.session.start_date }}</td>
+                                <td>{{ item.session.location }}</td>
+                                <td>{{ item.total }}</td>
+                                <td>{{ item.attended }}</td>
+                                <td>{{ item.absent }}</td>
+                                <td>{{ item.rate|floatformat:2 }}%</td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="table-secondary">
+                            <th colspan="3">TOTAL</th>
+                            <td>{{ report_data.total_all }}</td>
+                            <td>{{ report_data.attended_all }}</td>
+                            <td>{{ report_data.total_all|add:"-report_data.attended_all" }}</td>
+                            <td>{{ report_data.global_rate|floatformat:2 }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% elif report.type == 'COMPLETION' %}
+                <h6>Rapport de complétion</h6>
+                <!-- Contenu du rapport de complétion -->
+            {% elif report.type == 'PERFORMANCE' %}
+                <h6>Rapport de performance</h6>
+                <!-- Contenu du rapport de performance -->
+            {% elif report.type == 'SATISFACTION' %}
+                <h6>Rapport de satisfaction</h6>
+                <!-- Contenu du rapport de satisfaction -->
+            {% else %}
+                <div class="alert alert-info">
+                    Contenu du rapport personnalisé.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des formations{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Formations disponibles</h5>
+                <a href="{% url 'formation:training_create' %}" class="btn btn-primary">Nouvelle formation</a>
+            </div>
+            <div class="card-body">
+                {% if trainings %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Durée (heures)</th>
+                                <th>Places</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for training in trainings %}
+                                <tr>
+                                    <td><a href="{% url 'formation:training_detail' training.id %}">{{ training.title }}</a></td>
+                                    <td>{{ training.duration }}</td>
+                                    <td>{{ training.max_participants }}</td>
+                                    <td>
+                                        <a href="{% url 'formation:training_update' training.id %}" class="btn btn-sm btn-outline-primary">Modifier</a>
+                                        <a href="{% url 'formation:training_delete' training.id %}" class="btn btn-sm btn-outline-danger">Supprimer</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Aucune formation disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

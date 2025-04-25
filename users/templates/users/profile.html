@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Profil Utilisateur{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Profil Utilisateur</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Informations personnelles</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nom d'utilisateur:</strong> {{ user.username }}</p>
+                    <p><strong>Nom complet:</strong> {{ user.get_full_name|default:"Non spécifié" }}</p>
+                    <p><strong>Email:</strong> {{ user.email|default:"Non spécifié" }}</p>
+                    <p><strong>Date de naissance:</strong> {{ user.date_of_birth|date:"d/m/Y"|default:"Non spécifiée" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Adresse:</strong> {{ user.address|default:"Non spécifiée" }}</p>
+                    <p><strong>Contact:</strong> {{ user.contact|default:"Non spécifié" }}</p>
+                    <p><strong>Rôle:</strong> {{ user.role.name|default:"Aucun" }}</p>
+                    <p><strong>Date d'inscription:</strong> {{ user.date_joined|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+            <a href="{% url 'users:user_update' user.id %}" class="btn btn-primary">Modifier mon profil</a>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Mes formations</h5>
+        </div>
+        <div class="card-body">
+            {% with participations=user.participant_set.all %}
+                {% if participations %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Formation</th>
+                                <th>Session</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Certificat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participation in participations %}
+                                <tr>
+                                    <td>{{ participation.session.training.title }}</td>
+                                    <td>{{ participation.session.start_date|date:"d/m/Y" }}</td>
+                                    <td>{{ participation.registration_date|date:"d/m/Y" }}</td>
+                                    <td>{{ participation.get_completion_status_display }}</td>
+                                    <td>
+                                        {% if participation.get_certificate %}
+                                            <a href="{% url 'formation:certificate_detail' participation.get_certificate.id %}" class="btn btn-sm btn-success">Voir</a>
+                                        {% else %}
+                                            {% if participation.completion_status == 'COMPLETED' %}
+                                                <a href="{% url 'formation:certificate_generate' participation.id %}" class="btn btn-sm btn-outline-success">Générer</a>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Non disponible</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Vous n'êtes inscrit à aucune formation.</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endblock %}

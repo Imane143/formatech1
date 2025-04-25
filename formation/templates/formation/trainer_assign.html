@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Assigner un formateur{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Assigner un formateur à la session</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6>Détails de la session:</h6>
+                        <p><strong>Formation:</strong> {{ session.training.title }}</p>
+                        <p><strong>Dates:</strong> Du {{ session.start_date|date:"d/m/Y H:i" }} au {{ session.end_date|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Lieu:</strong> {{ session.location }}</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="trainer" class="form-label">Formateur</label>
+                            <select class="form-select" id="trainer" name="trainer" required>
+                                <option value="" selected disabled>Sélectionner un formateur</option>
+                                {% for trainer in trainers %}
+                                    <option value="{{ trainer.id }}">{{ trainer.user.get_full_name|default:trainer.user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'formation:session_detail' session.id %}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Assigner</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

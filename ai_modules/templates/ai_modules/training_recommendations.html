@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Recommandations de formation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Recommandations de formation</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Formations recommandées pour vous</h5>
+        </div>
+        <div class="card-body">
+            {% if recommendations %}
+                <div class="row">
+                    {% for recommendation in recommendations %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">{{ recommendation.training.title }}</h5>
+                                    <span class="badge bg-primary">Score: {{ recommendation.score|floatformat:1 }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <p>{{ recommendation.reason }}</p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{% url 'formation:training_detail' recommendation.training.id %}" class="btn btn-primary">Voir la formation</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aucune recommandation disponible pour le moment. Participez à quelques formations pour recevoir des recommandations personnalisées.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

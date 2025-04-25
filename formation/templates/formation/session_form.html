@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Modifier la session{% else %}Nouvelle session{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% if form.instance.pk %}Modifier la session{% else %}Nouvelle session{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="id_training" class="form-label">Formation</label>
+                            <select class="form-select" id="id_training" name="training" required>
+                                <option value="" selected disabled>Sélectionner une formation</option>
+                                {% for training in form.fields.training.queryset %}
+                                    <option value="{{ training.id }}" {% if form.instance.training.id == training.id %}selected{% endif %}>{{ training.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_start_date" class="form-label">Date de début</label>
+                            <input type="datetime-local" class="form-control" id="id_start_date" name="start_date" 
+                                   value="{% if form.instance.start_date %}{{ form.instance.start_date|date:'Y-m-d\TH:i' }}{% endif %}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_end_date" class="form-label">Date de fin</label>
+                            <input type="datetime-local" class="form-control" id="id_end_date" name="end_date" 
+                                   value="{% if form.instance.end_date %}{{ form.instance.end_date|date:'Y-m-d\TH:i' }}{% endif %}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">Lieu</label>
+                            <input type="text" class="form-control" id="id_location" name="location" 
+                                   value="{{ form.instance.location|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_status" class="form-label">Statut</label>
+                            <select class="form-select" id="id_status" name="status">
+                                {% for value, label in form.fields.status.choices %}
+                                    <option value="{{ value }}" {% if form.instance.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'formation:session_list' %}" class="btn btn-secondary">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

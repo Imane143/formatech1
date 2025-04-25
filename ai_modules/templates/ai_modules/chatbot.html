@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Assistant IA{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Assistant IA</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <div id="chat-messages" class="mb-3" style="height: 400px; overflow-y: auto; border: 1px solid #dee2e6; padding: 10px; border-radius: 5px;">
+                <div class="message bot">
+                    <div class="message-content">
+                        Bonjour ! Je suis votre assistant de formation. Comment puis-je vous aider aujourd'hui ?
+                    </div>
+                </div>
+                
+                {% for interaction in recent_interactions %}
+                    <div class="message user">
+                        <div class="message-content">
+                            {{ interaction.query }}
+                        </div>
+                    </div>
+                    <div class="message bot">
+                        <div class="message-content">
+                            {{ interaction.response }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="user-input" class="form-control" placeholder="Posez votre question...">
+                <button id="send-button" class="btn btn-primary">Envoyer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+    }
+    
+    .user {
+        justify-content: flex-end;
+    }
+    
+    .bot {
+        justify-content: flex-start;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+    }
+    
+    .user .message-content {
+        background-color: #007bff;
+        color: white;
+        border-top-right-radius: 5px;
+    }
+    
+    .bot .message-content {
+        background-color: #f1f1f1;
+        color: black;
+        border-top-left-radius: 5px;
+    }
+</style>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        
+        // Faire défiler vers le bas pour voir les messages les plus récents
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Fonction pour ajouter un message à la conversation
+        function addMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user' : 'message bot';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = message;
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Faire défiler vers le nouveau message
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Fonction pour envoyer un message au chatbot
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                // Afficher le message de l'utilisateur
+                addMessage(message, true);
+                
+                // Effacer l'input
+                userInput.value = '';
+                
+                // Simuler un délai de réponse
+                setTimeout(() => {
+                    // Envoyer au serveur
+                    fetch('{% url "ai_modules:chatbot_query" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ query: message })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Afficher la réponse du bot
+                        addMessage(data.response, false);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        addMessage("Désolé, je rencontre des difficultés à traiter votre demande.", false);
+                    });
+                }, 500);
+            }
+        }
+        
+        // Événements
+        sendButton.addEventListener('click', sendMessage);
+        
+        userInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
