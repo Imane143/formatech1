@@ -31,9 +31,7 @@
                 
                 <dt class="col-sm-3">Dernière mise à jour:</dt>
                 <dd class="col-sm-9">{{ report.updated_at }}</dd>
-                
-                <dt class="col-sm-3">Paramètres:</dt>
-                <dd class="col-sm-9"><pre>{{ report.parameters }}</pre></dd>
+               
             </dl>
         </div>
     </div>
@@ -80,13 +78,112 @@
                 </table>
             {% elif report.type == 'COMPLETION' %}
                 <h6>Rapport de complétion</h6>
-                <!-- Contenu du rapport de complétion -->
+                {% if report_data.completion_data %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Formation</th>
+                                <th>Total participants</th>
+                                <th>Terminé</th>
+                                <th>En cours</th>
+                                <th>Non démarré</th>
+                                <th>Échec</th>
+                                <th>Taux de complétion (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.completion_data %}
+                                <tr>
+                                    <td>{{ item.training.title }}</td>
+                                    <td>{{ item.total }}</td>
+                                    <td>{{ item.completed }}</td>
+                                    <td>{{ item.in_progress }}</td>
+                                    <td>{{ item.not_started }}</td>
+                                    <td>{{ item.failed }}</td>
+                                    <td>{{ item.rate|floatformat:2 }}%</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-secondary">
+                                <th>TOTAL</th>
+                                <td>{{ report_data.total_all }}</td>
+                                <td>{{ report_data.completed_all }}</td>
+                                <td>{{ report_data.in_progress_all|default:"-" }}</td>
+                                <td>{{ report_data.not_started_all|default:"-" }}</td>
+                                <td>{{ report_data.failed_all|default:"-" }}</td>
+                                <td>{{ report_data.global_rate|floatformat:2 }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info">
+                        Aucune donnée disponible. Assurez-vous que des formations et des participants existent dans le système.
+                    </div>
+                {% endif %}
             {% elif report.type == 'PERFORMANCE' %}
                 <h6>Rapport de performance</h6>
-                <!-- Contenu du rapport de performance -->
+                {% if report_data.trainers %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Formateur</th>
+                                <th>Sessions animées</th>
+                                <th>Taux de réussite (%)</th>
+                                <th>Note moyenne</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trainer in report_data.trainers %}
+                                <tr>
+                                    <td>{{ trainer.user.get_full_name|default:trainer.user.username }}</td>
+                                    <td>{{ trainer.sessions_count }}</td>
+                                    <td>{{ trainer.success_rate|floatformat:2 }}%</td>
+                                    <td>{{ trainer.average_rating|floatformat:1 }} / 5</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-secondary">
+                                <th>MOYENNE</th>
+                                <td>{{ report_data.avg_sessions|default:"-" }}</td>
+                                <td>{{ report_data.avg_success_rate|floatformat:2 }}%</td>
+                                <td>{{ report_data.avg_rating|floatformat:1 }} / 5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info">
+                        Aucune donnée disponible. Assurez-vous que des formateurs ont animé des sessions.
+                    </div>
+                {% endif %}
             {% elif report.type == 'SATISFACTION' %}
                 <h6>Rapport de satisfaction</h6>
-                <!-- Contenu du rapport de satisfaction -->
+                {% if report_data.satisfaction_data %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Formation</th>
+                                <th>Nombre d'évaluations</th>
+                                <th>Note moyenne</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in report_data.satisfaction_data %}
+                                <tr>
+                                    <td>{{ item.training.title }}</td>
+                                    <td>{{ item.total_ratings }}</td>
+                                    <td>{{ item.avg_rating|floatformat:1 }} / 5</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="table-secondary">
+                                <th>TOTAL</th>
+                                <td>{{ report_data.total_ratings }}</td>
+                                <td>{{ report_data.global_avg_rating|floatformat:1 }} / 5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info">
+                        Aucune donnée disponible. Assurez-vous que des participants ont évalué les formations.
+                    </div>
+                {% endif %}
             {% else %}
                 <div class="alert alert-info">
                     Contenu du rapport personnalisé.

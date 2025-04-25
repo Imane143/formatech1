@@ -92,16 +92,14 @@ def training_skills(request, training_id):
 
 # Fonctions utilitaires
 def generate_recommendations(user):
-    """Génère des recommandations de formation pour un utilisateur"""
+    """Génère des recommandations de formation pour un utilisateur basées sur l'IA"""
     # Supprimer les anciennes recommandations
     Recommendation.objects.filter(user=user).delete()
     
     # Récupérer les compétences de l'utilisateur
     user_skills = UserSkill.objects.filter(user=user)
     user_skill_names = [skill.skill_name.lower() for skill in user_skills]
-    
-    # Récupérer toutes les formations
-    trainings = Training.objects.all()
+    user_skill_levels = {skill.skill_name.lower(): skill.proficiency_level for skill in user_skills}
     
     # Récupérer les formations déjà suivies
     completed_trainings = Training.objects.filter(
@@ -110,6 +108,40 @@ def generate_recommendations(user):
     )
     completed_ids = [t.id for t in completed_trainings]
     
+    # Récupérer toutes les formations disponibles
+    trainings = Training.objects.all()
+    
+    # Analyser l'historique des formations pour trouver les formations populaires parmi des profils similaires
+    similar_users = []
+    for other_user in User.objects.exclude(id=user.id):
+        # Calculer la similarité entre utilisateurs basée sur les compétences
+        other_skills = UserSkill.objects.filter(user=other_user)
+        other_skill_names = [skill.skill_name.lower() for skill in other_skills]
+        
+        # Intersection des compétences
+        common_skills = set(user_skill_names).intersection(set(other_skill_names))
+        
+        # Calculer un score de similarité (entre 0 et 1)
+        if not user_skill_names or not other_skill_names:
+            similarity = 0
+        else:
+            similarity = len(common_skills) / max(len(user_skill_names), len(other_skill_names))
+        
+        if similarity > 0.3:  # Seuil de similarité
+            similar_users.append(other_user.id)
+    
+    # Formations populaires parmi les utilisateurs similaires
+    popular_among_similar = {}
+    if similar_users:
+        for training in trainings:
+            count = Participant.objects.filter(
+                user_id__in=similar_users,
+                session__training=training,
+                completion_status='COMPLETED'
+            ).count()
+            if count > 0:
+                popular_among_similar[training.id] = count
+    
     recommendations = []
     
     for training in trainings:
@@ -117,42 +149,86 @@ def generate_recommendations(user):
         if training.id in completed_ids:
             continue
         
-        # Calculer un score basé sur la correspondance des compétences
-        training_skills = TrainingSkill.objects.filter(training=training)
+        # Initialiser le score et les raisons
         score = 0
         match_reason = []
         
-        # Vérifier si les compétences requises sont déjà présentes chez l'utilisateur
-        for training_skill in training_skills:
-            if training_skill.skill_name.lower() in user_skill_names:
-                score += 0.5
-                match_reason.append(f"Vous possédez déjà la compétence: {training_skill.skill_name}")
-            else:
-                score += 1  # Score plus élevé pour les compétences que l'utilisateur n'a pas encore
-                match_reason.append(f"Vous pourriez acquérir la compétence: {training_skill.skill_name}")
+        # 1. Calculer le score basé sur les compétences requises et acquises
+        training_skills = TrainingSkill.objects.filter(training=training)
+        skill_match_score = 0
+        missing_skills = []
         
-        # Ajuster le score en fonction de la popularité de la formation
+        for training_skill in training_skills:
+            training_skill_name = training_skill.skill_name.lower()
+            
+            # L'utilisateur a déjà cette compétence
+            if training_skill_name in user_skill_names:
+                user_level = user_skill_levels[training_skill_name]
+                required_level = training_skill.minimum_level
+                
+                # Si l'utilisateur a le niveau requis ou plus
+                if user_level >= required_level:
+                    # Bonus plus petit si l'utilisateur est déjà compétent
+                    skill_match_score += 0.3
+                    match_reason.append(f"Vous maîtrisez déjà la compétence: {training_skill.skill_name}")
+                else:
+                    # Bonus pour améliorer une compétence existante
+                    skill_match_score += 0.7
+                    match_reason.append(f"Cette formation vous permettrait d'améliorer votre niveau en {training_skill.skill_name}")
+            else:
+                # Bonus plus élevé pour les nouvelles compétences
+                skill_match_score += 1
+                missing_skills.append(training_skill.skill_name)
+        
+        # Ajouter une raison pour les compétences manquantes
+        if missing_skills:
+            match_reason.append(f"Vous pourriez acquérir de nouvelles compétences: {', '.join(missing_skills)}")
+        
+        # Normaliser le score de compétence (maximum 3 points)
+        score += min(skill_match_score, 3)
+        
+        # 2. Bonus de popularité générale
         participant_count = Participant.objects.filter(session__training=training).count()
-        popularity_bonus = min(participant_count / 10, 0.5)  # Max bonus of 0.5
+        popularity_bonus = min(participant_count / 10, 0.7)  # Max bonus of 0.7
         score += popularity_bonus
         
         if popularity_bonus > 0:
             match_reason.append(f"Formation populaire avec {participant_count} participants")
         
+        # 3. Bonus pour les formations populaires parmi des profils similaires
+        if training.id in popular_among_similar:
+            similar_bonus = min(popular_among_similar[training.id] / 3, 1.0)  # Max bonus of 1.0
+            score += similar_bonus
+            match_reason.append("Des utilisateurs avec un profil similaire au vôtre ont suivi cette formation")
+        
+        # 4. Analyse du titre et de la description pour pertinence contextuelle
+        relevant_terms = [skill.lower() for skill in user_skill_names]
+        relevant_terms.extend(["débutant", "avancé", "intermédiaire"])
+        
+        title_desc = (training.title + " " + training.description).lower()
+        term_matches = sum(1 for term in relevant_terms if term in title_desc)
+        context_bonus = min(term_matches * 0.1, 0.5)  # Max bonus of 0.5
+        score += context_bonus
+        
+        # Normaliser le score final (1-5)
+        final_score = min(max(score, 0), 5)
+        
         # Sauvegarder la recommandation si le score est positif
-        if score > 0:
+        if final_score > 0:
             reason = ". ".join(match_reason)
             recommendation = Recommendation(
                 user=user,
                 training=training,
-                score=score,
+                score=final_score,
                 reason=reason
             )
             recommendation.save()
             recommendations.append(recommendation)
     
+    # Trier les recommandations par score (du plus élevé au plus bas)
+    recommendations.sort(key=lambda x: x.score, reverse=True)
+    
     return recommendations
-
 def process_chatbot_query(query, user):
     """Traite une requête chatbot et renvoie une réponse"""
     query = query.lower()

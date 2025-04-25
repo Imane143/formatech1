@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Certificat de Formation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h2 class="mb-0">Certificat de Formation</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-12 text-center">
+                    <h3 class="mb-4">Certificat N° {{ certificate.certificate_number }}</h3>
+                    <h4>Ce certificat atteste que</h4>
+                    <h2 class="my-4">{{ certificate.participant.user.get_full_name|default:certificate.participant.user.username }}</h2>
+                    <h4>a complété avec succès la formation:</h4>
+                    <h3 class="my-4">"{{ certificate.participant.session.training.title }}"</h3>
+                    <p class="mb-0">du {{ certificate.participant.session.start_date|date:"d/m/Y" }} au {{ certificate.participant.session.end_date|date:"d/m/Y" }}</p>
+                    <p>Nombre d'heures: {{ certificate.participant.session.training.duration }}</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Date d'émission:</strong> {{ certificate.issue_date|date:"d/m/Y" }}</p>
+                    {% if certificate.expiry_date %}
+                        <p><strong>Date d'expiration:</strong> {{ certificate.expiry_date|date:"d/m/Y" }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-end">
+                    <p><strong>Statut:</strong> {{ certificate.get_status_display }}</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'formation:certificate_verify' certificate.id %}" class="btn btn-outline-primary">Vérifier l'authenticité</a>
+                <button class="btn btn-success" onclick="window.print()">Imprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

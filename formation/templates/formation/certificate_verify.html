@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Vérification de Certificat{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">Vérification de Certificat</h2>
+        </div>
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <h3>Certificat N° {{ certificate.certificate_number }}</h3>
+                {% if is_valid %}
+                    <div class="alert alert-success mt-3">
+                        <h4 class="alert-heading">Certificat Valide!</h4>
+                        <p>Ce certificat a été délivré à {{ certificate.participant.user.get_full_name|default:certificate.participant.user.username }} et est actuellement valide.</p>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger mt-3">
+                        <h4 class="alert-heading">Certificat Non Valide!</h4>
+                        <p>Ce certificat n'est plus valide ou a été révoqué.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Formation:</strong> {{ certificate.participant.session.training.title }}</p>
+                    <p><strong>Dates:</strong> du {{ certificate.participant.session.start_date|date:"d/m/Y" }} au {{ certificate.participant.session.end_date|date:"d/m/Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Date d'émission:</strong> {{ certificate.issue_date|date:"d/m/Y" }}</p>
+                    {% if certificate.expiry_date %}
+                        <p><strong>Date d'expiration:</strong> {{ certificate.expiry_date|date:"d/m/Y" }}</p>
+                    {% endif %}
+                    <p><strong>Statut:</strong> {{ certificate.get_status_display }}</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'formation:certificate_detail' certificate.id %}" class="btn btn-primary">Voir le certificat</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

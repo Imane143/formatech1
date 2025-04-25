@@ -455,7 +455,6 @@ def generate_completion_data(parameters):
         'completed_all': completed_all,
         'global_rate': global_rate
     }
-
 def generate_performance_data(parameters):
     """Génère les données pour un rapport de performance"""
     # À implémenter

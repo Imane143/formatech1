@@ -132,15 +132,17 @@ def participant_register(request, session_pk):
         messages.error(request, 'Cette session est complète. Veuillez choisir une autre date.')
         return redirect('formation:session_detail', pk=session_pk)
     
-    if Participant.objects.filter(user=request.user, session=session).exists():
-        messages.error(request, 'Vous êtes déjà inscrit à cette session.')
-        return redirect('formation:session_detail', pk=session_pk)
-    
     if request.method == 'POST':
         form = ParticipantForm(request.POST)
         if form.is_valid():
+            selected_user = form.cleaned_data['user']
+            
+            # Vérifier si l'utilisateur sélectionné est déjà inscrit
+            if Participant.objects.filter(user=selected_user, session=session).exists():
+                messages.error(request, f'L\'utilisateur {selected_user.username} est déjà inscrit à cette session.')
+                return redirect('formation:session_detail', pk=session_pk)
+            
             participant = form.save(commit=False)
-            participant.user = request.user
             participant.session = session
             participant.save()
             messages.success(request, 'Inscription réussie!')
@@ -154,20 +156,22 @@ def participant_update(request, pk):
     participant = get_object_or_404(Participant, pk=pk)
     
     if request.method == 'POST':
-        form = ParticipantForm(request.POST, instance=participant)
+        # Créer une copie du POST pour la modifier
+        post_data = request.POST.copy()
+        
+        # S'assurer que l'ID de l'utilisateur est toujours présent
+        if 'user' not in post_data or not post_data['user']:
+            post_data['user'] = str(participant.user.id)
+        
+        form = ParticipantForm(post_data, instance=participant)
         if form.is_valid():
-            # Assurez-vous de ne pas écraser ces valeurs
-            form.instance.user = participant.user
-            form.instance.session = participant.session
             form.save()
             messages.success(request, 'Statut du participant mis à jour!')
             return redirect('formation:session_detail', pk=participant.session.id)
         else:
-            # Afficher les erreurs pour le débogage
             messages.error(request, f'Erreurs dans le formulaire: {form.errors}')
     else:
-        # Exclure explicitement user du formulaire pour la modification
-        form = ParticipantForm(instance=participant)
+        form = ParticipantForm(instance=participant, initial={'user': participant.user.id})
     
     return render(request, 'formation/participant_form.html', {
         'form': form,
