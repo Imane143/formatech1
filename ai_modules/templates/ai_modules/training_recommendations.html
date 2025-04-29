@@ -1,16 +1,13 @@
 {% extends "base.html" %}
-{% load ai_filters %}
-
 
 {% block title %}Recommandations de formation{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Recommandations de formation personnalisées</h1>
+    <h1>Recommandations de formation</h1>
     
     <div class="alert alert-info mb-4">
-        <i class="bi bi-lightbulb-fill me-2"></i>
-        Notre système d'IA a analysé votre profil de compétences et votre historique de formation pour vous proposer des formations adaptées à vos besoins.
+        <strong>IA Recommandation</strong> - Notre système intelligent a analysé votre profil et vos formations passées pour vous proposer les formations les plus pertinentes.
     </div>
     
     <div class="card mb-4">
@@ -22,37 +19,15 @@
                 <div class="row">
                     {% for recommendation in recommendations %}
                         <div class="col-md-6 mb-4">
-                            <div class="card h-100 border-{% if recommendation.score > 3 %}success{% elif recommendation.score > 1.5 %}info{% else %}secondary{% endif %}">
+                            <div class="card h-100">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="mb-0">{{ recommendation.training.title }}</h5>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-primary me-2">Score: {{ recommendation.score|floatformat:1 }}</span>
-                                        <div class="star-rating">
-                                            {% for i in "12345" %}
-                                                {% if forloop.counter <= recommendation.score|floatformat:0|add:"0" %}
-                                                    <i class="bi bi-star-fill text-warning"></i>
-                                                {% elif forloop.counter <= recommendation.score|add:"0.5"|floatformat:0|add:"0" %}
-                                                    <i class="bi bi-star-half text-warning"></i>
-                                                {% else %}
-                                                    <i class="bi bi-star text-warning"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                    </div>
+                                    <span class="badge bg-primary">Score: {{ recommendation.score|floatformat:1 }}</span>
                                 </div>
                                 <div class="card-body">
-                                    <p class="card-text">{{ recommendation.training.description|truncatechars:150 }}</p>
-                                    <h6 class="mb-2">Pourquoi cette formation vous conviendrait :</h6>
-                                    <ul>
-                                        {% for reason in recommendation.reason|split:". " %}
-                                            {% if reason %}
-                                                <li>{{ reason }}</li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </ul>
+                                    <p>{{ recommendation.reason }}</p>
                                 </div>
-                                <div class="card-footer d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">Durée: {{ recommendation.training.duration }} heures</small>
+                                <div class="card-footer">
                                     <a href="{% url 'formation:training_detail' recommendation.training.id %}" class="btn btn-primary">Voir la formation</a>
                                 </div>
                             </div>
@@ -60,10 +35,7 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="alert alert-info">
-                    <p>Aucune recommandation disponible pour le moment. Participez à quelques formations ou ajoutez des compétences à votre profil pour recevoir des recommandations personnalisées.</p>
-                    <a href="{% url 'formation:training_list' %}" class="btn btn-primary mt-2">Explorer les formations</a>
-                </div>
+                <p>Aucune recommandation disponible pour le moment. Participez à quelques formations pour recevoir des recommandations personnalisées.</p>
             {% endif %}
         </div>
     </div>
@@ -73,24 +45,14 @@
             <h5 class="mb-0">Comment fonctionnent nos recommandations ?</h5>
         </div>
         <div class="card-body">
-            <p>Notre système de recommandation utilise l'intelligence artificielle pour vous suggérer des formations adaptées à votre profil. Les recommandations sont basées sur :</p>
+            <p>Notre moteur de recommandation intelligent analyse plusieurs facteurs pour vous proposer les formations les plus adaptées :</p>
             <ul>
-                <li><strong>Vos compétences actuelles</strong> - Nous évaluons les compétences que vous possédez déjà et leur niveau</li>
-                <li><strong>Votre parcours de formation</strong> - Nous analysons les formations que vous avez déjà suivies</li>
-                <li><strong>Profils similaires</strong> - Nous identifions les formations suivies par des utilisateurs ayant un profil similaire au vôtre</li>
-                <li><strong>Tendances générales</strong> - Nous prenons en compte la popularité des formations</li>
+                <li><strong>Analyse de compétences</strong> - Nous comparons vos compétences actuelles avec celles requises par les formations</li>
+                <li><strong>Analyse des tendances</strong> - Nous identifions les formations populaires dans vos domaines d'intérêt</li>
+                <li><strong>Progression d'apprentissage</strong> - Nous analysons votre parcours de formation pour recommander les prochaines étapes logiques</li>
+                <li><strong>Popularité globale</strong> - Nous prenons en compte les formations qui intéressent le plus de participants</li>
             </ul>
-            <p>Plus vous ajoutez de compétences à votre profil et suivez de formations, plus nos recommandations seront pertinentes !</p>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Ajoute une classe CSS pour diviser le texte des raisons en liste
-    document.addEventListener('DOMContentLoaded', function() {
-        // Code pour gérer l'affichage dynamique si nécessaire
-    });
-</script>
 {% endblock %}
