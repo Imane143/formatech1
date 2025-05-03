@@ -7,10 +7,12 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>{{ report.title }}</h1>
         <div>
+            {% if user.is_staff or 'view_reports' in user.get_permission_codes %}
             <a href="{% url 'reports:report_export' report.id %}?format=pdf" class="btn btn-success">Exporter PDF</a>
             <a href="{% url 'reports:report_export' report.id %}?format=csv" class="btn btn-info">Exporter CSV</a>
             <a href="{% url 'reports:report_update' report.id %}" class="btn btn-primary">Modifier</a>
             <a href="{% url 'reports:report_delete' report.id %}" class="btn btn-danger">Supprimer</a>
+            {% endif %}
         </div>
     </div>
     

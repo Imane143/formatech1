@@ -6,7 +6,9 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Sessions de formation</h1>
+        {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
         <a href="{% url 'formation:session_create' %}" class="btn btn-primary">Nouvelle session</a>
+        {% endif %}
     </div>
     
     <div class="card">

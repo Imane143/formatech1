@@ -7,7 +7,9 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Formations disponibles</h5>
+                {% if user.is_staff or 'manage_trainings' in user.get_permission_codes %}
                 <a href="{% url 'formation:training_create' %}" class="btn btn-primary">Nouvelle formation</a>
+                {% endif %}
             </div>
             <div class="card-body">
                 {% if trainings %}
@@ -27,8 +29,10 @@
                                     <td>{{ training.duration }}</td>
                                     <td>{{ training.max_participants }}</td>
                                     <td>
+                                        {% if user.is_staff or 'manage_trainings' in user.get_permission_codes %}
                                         <a href="{% url 'formation:training_update' training.id %}" class="btn btn-sm btn-outline-primary">Modifier</a>
                                         <a href="{% url 'formation:training_delete' training.id %}" class="btn btn-sm btn-outline-danger">Supprimer</a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

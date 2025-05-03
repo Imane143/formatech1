@@ -6,10 +6,12 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Session: {{ session.training.title }}</h1>
+        {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
         <div>
             <a href="{% url 'formation:session_update' session.id %}" class="btn btn-primary">Modifier</a>
             <a href="{% url 'formation:session_delete' session.id %}" class="btn btn-danger">Supprimer</a>
         </div>
+        {% endif %}
     </div>
     
     <div class="card mb-4">
@@ -54,7 +56,9 @@
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Formateurs</h5>
+            {% if user.is_staff or 'manage_trainers' in user.get_permission_codes %}
             <a href="{% url 'formation:trainer_assign' session.id %}" class="btn btn-sm btn-primary">Ajouter un formateur</a>
+            {% endif %}
         </div>
         <div class="card-body">
             {% with trainers=session.trainer_sessions.all %}
@@ -65,7 +69,9 @@
                                 <tr>
                                     <th>Nom</th>
                                     <th>Spécialisations</th>
+                                    {% if user.is_staff or 'manage_trainers' in user.get_permission_codes %}
                                     <th>Actions</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,12 +79,14 @@
                                     <tr>
                                         <td>{{ trainer_session.trainer.user.get_full_name|default:trainer_session.trainer.user.username }}</td>
                                         <td>{{ trainer_session.trainer.specializations }}</td>
+                                        {% if user.is_staff or 'manage_trainers' in user.get_permission_codes %}
                                         <td>
                                             <form method="post" action="{% url 'formation:trainer_remove' session.id trainer_session.trainer.id %}" style="display: inline;">
                                                 {% csrf_token %}
                                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir retirer ce formateur?')">Retirer</button>
                                             </form>
                                         </td>
+                                        {% endif %}
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -94,7 +102,9 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Participants</h5>
+            {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
             <a href="{% url 'formation:participant_register' session.id %}" class="btn btn-sm btn-primary">Ajouter un participant</a>
+            {% endif %}
         </div>
         <div class="card-body">
             {% with participants=session.get_participants %}
@@ -108,7 +118,9 @@
                                     <th>Présence</th>
                                     <th>Statut</th>
                                     <th>Certificat</th>
+                                    {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
                                     <th>Actions</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,16 +132,26 @@
                                         <td>{{ participant.get_completion_status_display }}</td>
                                         <td>
                                             {% if participant.get_certificate %}
+                                                {% if user.is_staff or participant.user == user or 'generate_certificates' in user.get_permission_codes %}
                                                 <a href="{% url 'formation:certificate_detail' participant.get_certificate.id %}" class="btn btn-sm btn-success">Voir</a>
+                                                {% else %}
+                                                <span class="badge bg-secondary">Non accessible</span>
+                                                {% endif %}
                                             {% elif participant.completion_status == 'COMPLETED' %}
+                                                {% if user.is_staff or 'generate_certificates' in user.get_permission_codes %}
                                                 <a href="{% url 'formation:certificate_generate' participant.id %}" class="btn btn-sm btn-outline-success">Générer</a>
+                                                {% else %}
+                                                <span class="badge bg-secondary">En attente de génération</span>
+                                                {% endif %}
                                             {% else %}
                                                 <span class="badge bg-secondary">Non disponible</span>
                                             {% endif %}
                                         </td>
+                                        {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
                                         <td>
                                             <a href="{% url 'formation:participant_update' participant.id %}" class="btn btn-sm btn-primary">Modifier</a>
                                         </td>
+                                        {% endif %}
                                     </tr>
                                 {% endfor %}
                             </tbody>

@@ -20,15 +20,24 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'formation:training_list' %}">Formations</a>
                     </li>
+                    {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'formation:session_list' %}">Sessions</a>
                     </li>
+                    {% endif %}
+                    {% if user.is_staff or 'view_reports' in user.get_permission_codes %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'reports:report_list' %}">Rapports</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'ai_modules:training_recommendations' %}">Recommandations</a>
                     </li>
+                    {% if user.is_staff or 'manage_users' in user.get_permission_codes %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'ai_modules:chatbot_interface' %}">Assistant IA</a>
+                    </li>
+                    {% endif %}
                 </ul>
                 {% endif %}
                 <ul class="navbar-nav ms-auto">

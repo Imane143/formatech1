@@ -1,3 +1,6 @@
+# Au début du fichier formation/views.py, ajoutez cette ligne après les autres imports
+
+from users.decorators import permission_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -19,6 +22,7 @@ def training_detail(request, pk):
     return render(request, 'formation/training_detail.html', {'training': training, 'sessions': sessions})
 
 @login_required
+@permission_required('manage_trainings')
 def training_create(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
@@ -45,6 +49,7 @@ def training_update(request, pk):
         form = TrainingForm(instance=training)
     
     return render(request, 'formation/training_form.html', {'form': form, 'action': 'Modifier', 'training': training})
+
 @login_required
 def trainer_remove(request, session_pk, trainer_pk):
     session = get_object_or_404(TrainingSession, pk=session_pk)
@@ -55,6 +60,7 @@ def trainer_remove(request, session_pk, trainer_pk):
     
     messages.success(request, 'Formateur retiré avec succès!')
     return redirect('formation:session_detail', pk=session_pk)
+
 @login_required
 def training_delete(request, pk):
     training = get_object_or_404(Training, pk=pk)
@@ -85,6 +91,7 @@ def session_detail(request, pk):
     })
 
 @login_required
+@permission_required('manage_sessions')
 def session_create(request):
     if request.method == 'POST':
         form = TrainingSessionForm(request.POST)
@@ -178,6 +185,7 @@ def participant_update(request, pk):
         'participant': participant,
         'session': participant.session
     })
+
 @login_required
 def trainer_assign(request, session_pk):
     session = get_object_or_404(TrainingSession, pk=session_pk)
@@ -205,9 +213,20 @@ def trainer_assign(request, session_pk):
 @login_required
 def certificate_detail(request, pk):
     certificate = get_object_or_404(Certificate, pk=pk)
+    
+    # Vérifier si l'utilisateur est l'administrateur, le propriétaire du certificat, ou a la permission
+    is_admin = request.user.is_staff or request.user.is_superuser
+    is_owner = certificate.participant.user == request.user
+    has_permission = 'generate_certificates' in request.user.get_permission_codes() if hasattr(request.user, 'get_permission_codes') else False
+    
+    # Si l'utilisateur n'a pas l'autorisation de voir ce certificat
+    if not (is_admin or is_owner or has_permission):
+        messages.error(request, "Vous n'avez pas l'autorisation de voir ce certificat.")
+        return redirect('formation:training_list')
+    
     return render(request, 'formation/certificate_detail.html', {'certificate': certificate})
-
 @login_required
+@permission_required('generate_certificates')
 def certificate_generate(request, pk):
     participant = get_object_or_404(Participant, pk=pk)
     

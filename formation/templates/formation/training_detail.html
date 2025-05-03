@@ -6,10 +6,12 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>{{ training.title }}</h1>
+        {% if user.is_staff or 'manage_trainings' in user.get_permission_codes %}
         <div>
             <a href="{% url 'formation:training_update' training.id %}" class="btn btn-primary">Modifier</a>
             <a href="{% url 'formation:training_delete' training.id %}" class="btn btn-danger">Supprimer</a>
         </div>
+        {% endif %}
     </div>
     
     <div class="card mb-4">
@@ -49,7 +51,9 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Sessions programmées</h5>
+            {% if user.is_staff or 'manage_sessions' in user.get_permission_codes %}
             <a href="{% url 'formation:session_create' %}" class="btn btn-primary btn-sm">Nouvelle session</a>
+            {% endif %}
         </div>
         <div class="card-body">
             {% if sessions %}

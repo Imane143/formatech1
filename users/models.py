@@ -36,3 +36,7 @@ class User(AbstractUser):
         if not self.role:
             return []
         return [rp.permission for rp in RolePermission.objects.filter(role=self.role)]
+def get_permission_codes(self):
+    if not self.role:
+        return []
+    return [rp.permission.code for rp in RolePermission.objects.filter(role=self.role)]
